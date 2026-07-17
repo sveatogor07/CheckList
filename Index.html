@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Список покупок</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap');
+
+  :root{
+    --paper: #EDE6D6;
+    --paper-dark: #E2D9C4;
+    --ink: #2B2B28;
+    --ink-soft: #6b6459;
+    --stamp: #B5461D;
+    --done: #5B7553;
+    --rule: #C9BFAA;
+    --white: #FBF9F3;
+  }
+
+  *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html,body{
+    margin:0; padding:0; min-height:100%;
+    background: var(--paper-dark);
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(43,43,40,0.06) 1px, transparent 0);
+    background-size: 14px 14px;
+    font-family: 'Inter', sans-serif;
+    color: var(--ink);
+  }
+
+  .wrap{
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 24px 16px 60px;
+  }
+
+  header{
+    text-align:center;
+    margin-bottom: 18px;
+  }
+  header .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+  }
+  header h1{
+    font-family:'JetBrains Mono', monospace;
+    font-weight:700;
+    font-size: 26px;
+    margin: 6px 0 0;
+    letter-spacing: 0.5px;
+  }
+  header h1::before{ content:"☐ "; color:var(--stamp); }
+
+  .card{
+    background: var(--white);
+    border-radius: 2px;
+    padding: 22px 20px 26px;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.03), 0 12px 28px -14px rgba(43,43,40,0.35);
+    position: relative;
+    margin-bottom: 22px;
+  }
+  .card::after{
+    content:"";
+    position:absolute; left:0; right:0; bottom:-9px; height:18px;
+    background:
+      linear-gradient(-45deg, transparent 9px, var(--white) 9px) 0 0/18px 18px repeat-x,
+      linear-gradient(45deg, transparent 9px, var(--white) 9px) 0 0/18px 18px repeat-x;
+  }
+
+  .section-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 10px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .section-label::after{
+    content:""; flex:1; height:1px; background: var(--rule);
+  }
+
+  textarea{
+    width:100%;
+    min-height: 130px;
+    resize: vertical;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 12px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    background: var(--paper);
+    color: var(--ink);
+  }
+  textarea:focus{ outline: 2px solid var(--stamp); outline-offset: 1px; }
+  textarea::placeholder{ color: var(--ink-soft); }
+
+  .row{
+    display:flex; gap:10px; margin-top: 12px; flex-wrap: wrap;
+  }
+
+  .btn{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 4px;
+    padding: 12px 16px;
+    cursor: pointer;
+    flex: 1;
+    min-width: 130px;
+    transition: transform 0.08s ease, filter 0.15s ease;
+  }
+  .btn:active{ transform: translateY(1px) scale(0.99); }
+  .btn-primary{ background: var(--stamp); color: var(--white); }
+  .btn-primary:hover{ filter: brightness(1.06); }
+  .btn-ghost{
+    background: transparent;
+    color: var(--ink-soft);
+    border: 1px solid var(--rule);
+  }
+  .btn-ghost:hover{ background: var(--paper); }
+
+  .file-label{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    font-family:'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+    border: 1px dashed var(--rule);
+    border-radius: 4px;
+    padding: 10px;
+    margin-top: 12px;
+    cursor: pointer;
+  }
+  .file-label:hover{ border-color: var(--stamp); color: var(--stamp); }
+  .file-label input{ display:none; }
+
+  .progress-line{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+    display:flex; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .progress-bar{
+    height: 4px;
+    background: var(--rule);
+    border-radius: 2px;
+    overflow:hidden;
+    margin-bottom: 18px;
+  }
+  .progress-fill{
+    height:100%;
+    background: var(--done);
+    width:0%;
+    transition: width 0.25s ease;
+  }
+
+  ul.list{ list-style:none; margin:0; padding:0; }
+  ul.list li{
+    display:flex; align-items:flex-start; gap:12px;
+    padding: 11px 2px;
+    border-bottom: 1px dashed var(--rule);
+    cursor:pointer;
+    user-select:none;
+    position: relative;
+  }
+  ul.list li:last-child{ border-bottom:none; }
+
+  .box{
+    flex-shrink:0;
+    width: 20px; height:20px;
+    border: 2px solid var(--ink);
+    border-radius: 3px;
+    margin-top:1px;
+    display:flex; align-items:center; justify-content:center;
+    transition: all 0.15s ease;
+  }
+  .box svg{ opacity:0; transform: scale(0.5); transition: all 0.15s ease; }
+  li.done .box{ background: var(--done); border-color: var(--done); }
+  li.done .box svg{ opacity:1; transform: scale(1); }
+
+  .item-text{
+    font-size: 15px;
+    line-height: 1.4;
+    padding-top: 1px;
+    transition: color 0.15s ease;
+  }
+  li.done .item-text{
+    color: var(--ink-soft);
+    text-decoration: line-through;
+    text-decoration-color: var(--stamp);
+    text-decoration-thickness: 2px;
+  }
+
+  .empty{
+    text-align:center;
+    padding: 30px 10px;
+    color: var(--ink-soft);
+    font-size: 14px;
+  }
+
+  .list-actions{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-top: 16px;
+    gap: 10px;
+  }
+  .link-btn{
+    background:none; border:none;
+    font-family:'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    cursor:pointer;
+    padding: 6px 0;
+  }
+  .link-btn:hover{ color: var(--stamp); }
+
+  footer{
+    text-align:center;
+    font-family:'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-soft);
+    letter-spacing: 1px;
+    opacity: 0.7;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Список покупок</div>
+    <h1>ЧЕК-ЛИСТ</h1>
+  </header>
+
+  <div class="card" id="inputCard">
+    <div class="section-label">Ввод текста</div>
+    <textarea id="rawInput" placeholder="Впишите продукты — каждый с новой строки:&#10;Молоко&#10;Хлеб&#10;Яйца&#10;Сыр"></textarea>
+
+    <label class="file-label">
+      📄 Загрузить текстовый файл (.txt)
+      <input type="file" id="fileInput" accept=".txt,text/plain">
+    </label>
+
+    <div class="row">
+      <button class="btn btn-primary" id="buildBtn">Сформировать список</button>
+    </div>
+  </div>
+
+  <div class="card" id="listCard" style="display:none;">
+    <div class="section-label">Ваш список</div>
+    <div class="progress-line">
+      <span id="progressText">0 / 0 куплено</span>
+      <span id="progressPct">0%</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+    <ul class="list" id="listEl"></ul>
+
+    <div class="list-actions">
+      <button class="link-btn" id="clearDoneBtn">Убрать купленное</button>
+      <button class="link-btn" id="editBtn">✎ Изменить список</button>
+    </div>
+  </div>
+
+  <footer>ВЫЧЁРКИВАЙТЕ — НЕ ЗАБЫВАЙТЕ</footer>
+</div>
+
+<script>
+(function(){
+  const rawInput = document.getElementById('rawInput');
+  const fileInput = document.getElementById('fileInput');
+  const buildBtn = document.getElementById('buildBtn');
+  const inputCard = document.getElementById('inputCard');
+  const listCard = document.getElementById('listCard');
+  const listEl = document.getElementById('listEl');
+  const progressText = document.getElementById('progressText');
+  const progressPct = document.getElementById('progressPct');
+  const progressFill = document.getElementById('progressFill');
+  const clearDoneBtn = document.getElementById('clearDoneBtn');
+  const editBtn = document.getElementById('editBtn');
+
+  const STORAGE_KEY = 'grocery-checklist:v1';
+  let items = []; // {text, done}
+
+  function parseLines(text){
+    return text
+      .split('\n')
+      .map(l => l.replace(/^[\s\-\*\u2022\d\.\)]+/,'').trim())
+      .filter(l => l.length > 0);
+  }
+
+  function checkMark(){
+    return '<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M4 12l5 5L20 6" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
+
+  function render(){
+    if(items.length === 0){
+      listEl.innerHTML = '<div class="empty">Список пуст. Вернитесь к вводу текста.</div>';
+    } else {
+      listEl.innerHTML = items.map((it, i) => `
+        <li class="${it.done ? 'done':''}" data-i="${i}">
+          <div class="box">${checkMark()}</div>
+          <div class="item-text">${escapeHtml(it.text)}</div>
+        </li>
+      `).join('');
+    }
+    const doneCount = items.filter(i=>i.done).length;
+    const total = items.length;
+    progressText.textContent = `${doneCount} / ${total} куплено`;
+    progressPct.textContent = total ? Math.round(doneCount/total*100) + '%' : '0%';
+    progressFill.style.width = total ? (doneCount/total*100) + '%' : '0%';
+    save();
+  }
+
+  function escapeHtml(s){
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  listEl.addEventListener('click', (e)=>{
+    const li = e.target.closest('li[data-i]');
+    if(!li) return;
+    const i = parseInt(li.dataset.i, 10);
+    items[i].done = !items[i].done;
+    render();
+  });
+
+  buildBtn.addEventListener('click', ()=>{
+    const parsed = parseLines(rawInput.value);
+    if(parsed.length === 0){
+      rawInput.focus();
+      return;
+    }
+    items = parsed.map(text => ({text, done:false}));
+    inputCard.style.display = 'none';
+    listCard.style.display = 'block';
+    render();
+  });
+
+  editBtn.addEventListener('click', ()=>{
+    rawInput.value = items.map(i=>i.text).join('\n');
+    inputCard.style.display = 'block';
+    listCard.style.display = 'none';
+  });
+
+  clearDoneBtn.addEventListener('click', ()=>{
+    items = items.filter(i=>!i.done);
+    render();
+  });
+
+  fileInput.addEventListener('change', (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev)=>{
+      rawInput.value = ev.target.result;
+    };
+    reader.readAsText(file, 'UTF-8');
+  });
+
+  function save(){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    }catch(err){ console.error('save failed', err); }
+  }
+
+  function load(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){
+        items = JSON.parse(raw);
+        if(items.length){
+          inputCard.style.display = 'none';
+          listCard.style.display = 'block';
+          render();
+        }
+      }
+    }catch(err){
+      // no saved data yet, that's fine
+    }
+  }
+
+  load();
+})();
+</script>
+</body>
+</html>
